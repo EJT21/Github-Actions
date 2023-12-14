@@ -17,8 +17,16 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
-    - name: Run test1
-      run: python test1.py
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+        pip install pytest  # Ensure pytest is installed
 
-    - name: Run test2
-      run: python test2.py
+    - name: Run tests with pytest
+      run: pytest --junitxml=report.xml  # Run tests and generate a JUnit XML report
+
+    - name: Upload test report
+      uses: actions/upload-artifact@v2
+      with:
+        name: pytest-report
+        path: report.xml  # Upload the generated report as an artifact
