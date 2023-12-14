@@ -1,0 +1,25 @@
+name: Python Testing
+
+on:
+  pull_request:  # This will trigger the workflow for any pull request
+  workflow_dispatch: # Allows manual triggering of the workflow
+
+jobs:
+  test-scripts: # Name of the job
+    runs-on: macos-latest # Specify the OS for the runner
+    strategy:
+      matrix:
+        python-version: ['3.6', '3.10']  # Python versions
+
+    steps:
+    - uses: actions/checkout@v2  # Checks out your repository
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2  # Sets up Python environment
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Run test1
+      run: python test1.py  # Executes test1.py
+
+    - name: Run test2
+      run: python test2.py  # Executes test2.py
