@@ -8,12 +8,12 @@ jobs:
     runs-on: macos-latest
     strategy:
       matrix:
-        python-version: ['3.6', '3.10']  # Corrected Python versions
+        python-version: ['3.6', '3.10']  # Corrected Python versions as strings
 
     steps:
-    - uses: actions/checkout@v3  # Updated action version
+    - uses: actions/checkout@v2  # Update to the latest version if v3 is available
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v3  # Updated action version
+      uses: actions/setup-python@v2  # Update to the latest version if v3 is available
       with:
         python-version: ${{ matrix.python-version }}
 
