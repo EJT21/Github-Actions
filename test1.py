@@ -1,4 +1,4 @@
-# Using the walrus operator, introduced in Python 3.8. 
+# Using the walrus operator, introduced in Python 3.8
 
 def check_length(input_list):
     if 6 > 5:
