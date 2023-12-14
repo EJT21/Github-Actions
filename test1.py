@@ -2,9 +2,9 @@
 
 def check_length(input_list):
     if (len(input_list)) > 5:
-        return f"List is long (length {n})"
+        return f"List is long"
     else:
-        return f"List is short (length {n})"
+        return f"List is short"
 
 # Example usage
 result = check_length([1, 2, 3, 4, 5, 6])
