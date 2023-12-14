@@ -1,0 +1,39 @@
+# Name of the workflow
+name: Manual Python Compatibility Tests
+
+# Specifies the event that triggers the workflow - in this case, a manual trigger
+on:
+  workflow_dispatch:
+
+# Defines a job named 'test-scrips'
+jobs:
+  test-scripts:
+    # Specifies the type of runner that the job will run on - here, it's the latest version of macos
+    runs-on: macos-latest
+
+    # Strategy block for running jobs with a matrix of different configurations
+    strategy:
+      matrix:
+        # Specifies the Python versions to be used in the matrix
+        python-version: [3.6, 3.10]
+
+    # Steps are a sequence of tasks that will be executed as part of the job
+    steps:
+    - uses: actions/checkout@v2
+      # This step checks out your repository under $GITHUB_WORKSPACE, so your workflow can access it
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        # Sets up a specific version of Python based on the matrix
+        python-version: ${{ matrix.python-version }}
+
+    - name: Run test1
+      run: |
+        # This command runs the script 'test1.py'
+        python test1.py
+
+    - name: Run test2
+      run: |
+        # This command runs the script 'test2.py'
+        python test2.py
