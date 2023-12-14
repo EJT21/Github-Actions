@@ -1,3 +1,4 @@
+#Simple Factorial Script
 def factorial(n):
     """Calculate the factorial of a given number."""
     if n == 0:
