@@ -1,10 +1,10 @@
-# Using the walrus operator (:=), introduced in Python 3.8. 
+# Using the walrus operator, introduced in Python 3.8
 
 def check_length(input_list):
-    if (len(input_list)) > 5:
-        return f"List is long"
+    if (n := len(input_list)) > 5:
+        return f"List is long (length {n})"
     else:
-        return f"List is short"
+        return f"List is short (length {n})"
 
 # Example usage
 result = check_length([1, 2, 3, 4, 5, 6])
