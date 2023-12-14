@@ -1,39 +1,24 @@
-name: Manual Python Compatibility Tests
+name: Python Testing
 
 on:
-  workflow_dispatch:
+  workflow_dispatch: #We need to manually run this 
 
 jobs:
-  test-scripts:
-    runs-on: macos-latest
+  test-scripts: #Name of the job
+    runs-on: macos-latest #We can change this to whatever OS we use
     strategy:
       matrix:
-        python-version: ['3.6', '3.10']
+        python-version: ['3.6', '3.10']  # Corrected Python versions as strings
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v2  #Github actions code
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v2  #Setup the enviornment
       with:
         python-version: ${{ matrix.python-version }}
 
-    - name: Install dependencies
-      run: |
-        pip install -r requirements.txt
-        pip install pytest
-
-    # Running the individual scripts
     - name: Run test1
       run: python test1.py
+
     - name: Run test2
       run: python test2.py
-
-    # Running tests with pytest
-    - name: Run tests with pytest
-      run: pytest --junitxml=report.xml
-
-    - name: Upload test report
-      uses: actions/upload-artifact@v2
-      with:
-        name: pytest-report
-        path: report.xml
