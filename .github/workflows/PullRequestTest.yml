@@ -1,4 +1,4 @@
-name: Python Testing
+name: Pull Request Testing in Python
 
 on:
   pull_request:  # This will trigger the workflow for any pull request
