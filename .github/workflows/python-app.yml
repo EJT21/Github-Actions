@@ -8,25 +8,32 @@ jobs:
     runs-on: macos-latest
     strategy:
       matrix:
-        python-version: ['3.6', '3.10']  # Corrected Python versions as strings
+        python-version: ['3.6', '3.10']
 
     steps:
-    - uses: actions/checkout@v2  # Update to the latest version if v3 is available
+    - uses: actions/checkout@v2
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2  # Update to the latest version if v3 is available
+      uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
 
     - name: Install dependencies
       run: |
         pip install -r requirements.txt
-        pip install pytest  # Ensure pytest is installed
+        pip install pytest
 
+    # Running the individual scripts
+    - name: Run test1
+      run: python test1.py
+    - name: Run test2
+      run: python test2.py
+
+    # Running tests with pytest
     - name: Run tests with pytest
-      run: pytest --junitxml=report.xml  # Run tests and generate a JUnit XML report
+      run: pytest --junitxml=report.xml
 
     - name: Upload test report
       uses: actions/upload-artifact@v2
       with:
         name: pytest-report
-        path: report.xml  # Upload the generated report as an artifact
+        path: report.xml
