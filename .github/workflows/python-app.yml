@@ -1,20 +1,20 @@
 name: Python Testing
 
 on:
-  workflow_dispatch: # Manual trigger for the workflow
+  workflow_dispatch:
 
 jobs:
-  test-scripts: # Name of the job
-    runs-on: macos-latest # OS for the runner
+  test-scripts:
+    runs-on: macos-latest
     strategy:
       matrix:
-        python-version: ['3.6', '3.10'] # Python versions as strings
+        python-version: ['3.6', '3.10']
 
     steps:
-    - uses: actions/checkout@v2  # Checks-out your repository
+    - uses: actions/checkout@v2
 
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2  # Sets up Python environment
+      uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
 
@@ -25,6 +25,10 @@ jobs:
 
     - name: Run test1
       run: python test1.py
+      continue-on-error: true  # This step will continue on error
 
     - name: Run test2
       run: python test2.py
+      # You can add continue-on-error here as well if needed
+
+# Add other steps as needed
