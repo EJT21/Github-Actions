@@ -15,6 +15,7 @@ jobs:
       - name: Run tests
         run: npm test
   deploy:
+    needs: test #These jobs run in parallel unless this is placed here. If I have multiple jobs use [test1, test2]
     runs-on: ubuntu-latest #Every job has its own runner
     steps: 
       - name: Get Code
@@ -30,5 +31,5 @@ jobs:
       - name: Build Project
         run: npm run build #part of the package-lock.json
       - name: Deploy
-        run: echo "Here you would deploy" #These jobs run in parallel
+        run: echo "Here you would deploy" 
     
