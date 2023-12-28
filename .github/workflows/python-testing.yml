@@ -3,7 +3,7 @@ name: Python Executable Build on HV- Branches
 on:
   pull_request:
     branches:
-      - 'HV-*'
+      - main
 
 jobs:
   build-executable:
