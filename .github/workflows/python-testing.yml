@@ -1,0 +1,37 @@
+name: Python Executable Build on HV- Branches
+
+on:
+  pull_request:
+    branches:
+      - 'HV-*'
+
+jobs:
+  build-executable:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.6, 3.11]
+    if: startsWith(github.head_ref, 'HV-') # Ensures it only runs for HV- branches
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install PyInstaller
+      run: pip install pyinstaller
+
+    - name: Find Python Scripts and Build Executables
+      run: |
+        find . -name '*.py' -not -path './.github/*' | while read script; do
+          pyinstaller --onefile "$script"
+        done
+
+    - name: Upload Executables
+      uses: actions/upload-artifact@v2
+      with:
+        name: executables
+        path: dist/
