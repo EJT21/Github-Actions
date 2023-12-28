@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.6', '3.11']
+        python-version: ['3.6.0', '3.11.0']
     if: startsWith(github.head_ref, 'HV-') # Ensures it only runs for HV- branches
 
     steps:
