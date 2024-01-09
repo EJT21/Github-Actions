@@ -1,4 +1,4 @@
-name: Build Python Executable
+name: Python Syntax Check and Build
 
 on:
   pull_request:
@@ -7,23 +7,26 @@ on:
       - '**.py'
 
 jobs:
-  build-executable:
+  check-and-build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.6, 3.10]
 
     steps:
     - uses: actions/checkout@v2
 
-    - name: Set up Python
+    - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v2
       with:
-        python-version: '3.10' # Adjust the version as needed
+        python-version: ${{ matrix.python-version }}
 
-    - name: Install PyInstaller
+    - name: Install PyInstaller and Flake8
       run: |
         python -m pip install --upgrade pip
-        pip install pyinstaller
+        pip install pyinstaller flake8
 
-    - name: Get list of changed Python files
+    - name: Find changed Python files
       id: files
       uses: actions/github-script@v3
       with:
@@ -43,19 +46,21 @@ jobs:
             core.setOutput('files', pythonFiles.join('\n'));
           } else {
             core.setFailed('No Python files changed.');
-          }
 
-    - name: Build executables with PyInstaller
+    - name: Check syntax and Build Executable
       if: steps.files.outputs.files
       run: |
         IFS=$'\n' read -d '' -r -a files_array <<< "${{ steps.files.outputs.files }}"
         for file in "${files_array[@]}"
         do
-          echo "Building executable for $file"
+          echo "Processing $file"
+          # Check syntax
+          flake8 $file
+          # Build executable
           pyinstaller --onefile $file
         done
 
-    - name: Upload executables as artifacts
+    - name: Upload Executable as Artifact
       uses: actions/upload-artifact@v2
       with:
         name: executables
