@@ -1,25 +1,58 @@
-name: Pull Request Testing in Python
+name: Python Application Test
 
 on:
-  pull_request:  # This will trigger the workflow for any pull request
-  workflow_dispatch: # Allows manual triggering of the workflow
+  pull_request:
+    branches: [ main ]
+    paths:
+      - '**.py'
 
 jobs:
-  test-scripts: # Name of the job
-    runs-on: macos-latest # Specify the OS for the runner
+  build:
+    runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.6', '3.10']  # Python versions
+        python-version: [3.6, 3.11]
 
     steps:
-    - uses: actions/checkout@v2  # Checks out your repository
+    - uses: actions/checkout@v2
+
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2  # Sets up Python environment
+      uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
 
-    - name: Run test1
-      run: python test1.py  # Executes test1.py
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pyinstaller flake8
 
-    - name: Run test2
-      run: python test2.py  # Executes test2.py
+    - name: Find changed Python files
+      id: getfile
+      run: |
+        files=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '\.py$')
+        if [ -z "$files" ]; then
+          echo "No Python files changed"
+          exit 0
+        fi
+        echo "::set-output name=files::$files"
+
+    - name: Run Flake8 and Build executable
+      if: steps.getfile.outputs.files
+      run: |
+        for file in ${{ steps.getfile.outputs.files }}
+        do
+          echo "Processing $file"
+          # Run Flake8
+          flake8 $file
+          # Build executable
+          pyinstaller --onefile $file
+        done
+
+    - name: Upload executables as artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: executables
+        path: dist/
+
+    - name: List output
+      run: ls -l dist/
