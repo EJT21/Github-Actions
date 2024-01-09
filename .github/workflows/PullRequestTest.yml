@@ -42,13 +42,18 @@ jobs:
             return response.data.map(file => file.filename);
           });
           const pythonFiles = files.filter(file => file.endsWith('.py'));
-          core.setOutput('files', pythonFiles.join('\n'));
+          if (pythonFiles.length > 0) {
+            core.setOutput('files', pythonFiles.join('\n'));
+          } else {
+            core.setFailed('No Python files changed.');
+          }
 
     - name: Run Flake8 and Build executable
       if: steps.files.outputs.files
       run: |
-        files="${{ steps.files.outputs.files }}"
-        IFS=$'\n' read -d '' -r -a files_array <<< "$files"
+        echo "Changed Python Files:"
+        echo "${{ steps.files.outputs.files }}"
+        IFS=$'\n' read -d '' -r -a files_array <<< "${{ steps.files.outputs.files }}"
         for file in "${files_array[@]}"
         do
           echo "Processing $file"
