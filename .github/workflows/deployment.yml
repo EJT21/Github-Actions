@@ -14,6 +14,13 @@ jobs:
         run: npm install
       - name: Run tests
         run: npm test
+      - name: upload artifacts
+        uses: actions/upload-artifact@v3
+        with: 
+          name: dist-files #Here we store the output in the dist-files 
+          path: | 
+            dist
+            package.json
   deploy:
     needs: test #These jobs run in parallel unless this is placed here. If I have multiple jobs use [test1, test2]
     runs-on: ubuntu-latest #Every job has its own runner
