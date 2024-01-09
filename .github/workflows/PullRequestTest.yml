@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.10", "3.11"] # Corrected Python versions
+        python-version: ["3.10", "3.11"]
 
     steps:
     - uses: actions/checkout@v2
@@ -26,20 +26,30 @@ jobs:
         python -m pip install --upgrade pip
         pip install pyinstaller flake8
 
-    - name: Find changed Python files
-      id: getfile
-      run: |
-        files=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '\.py$')
-        if [ -z "$files" ]; then
-          echo "No Python files changed"
-          exit 0
-        fi
-        echo "::set-output name=files::$files"
+    - name: Get list of changed files
+      id: files
+      uses: actions/github-script@v3
+      with:
+        script: |
+          const payload = context.payload;
+          const pullRequest = payload.pull_request;
+          const listFilesOptions = github.pulls.listFiles.endpoint.merge({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            pull_number: pullRequest.number
+          });
+          const files = await github.paginate(listFilesOptions, (response) => {
+            return response.data.map(file => file.filename);
+          });
+          const pythonFiles = files.filter(file => file.endsWith('.py'));
+          core.setOutput('files', pythonFiles.join('\n'));
 
     - name: Run Flake8 and Build executable
-      if: steps.getfile.outputs.files
+      if: steps.files.outputs.files
       run: |
-        for file in ${{ steps.getfile.outputs.files }}
+        files="${{ steps.files.outputs.files }}"
+        IFS=$'\n' read -d '' -r -a files_array <<< "$files"
+        for file in "${files_array[@]}"
         do
           echo "Processing $file"
           # Run Flake8
