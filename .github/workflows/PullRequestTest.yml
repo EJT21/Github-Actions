@@ -1,61 +1,45 @@
-name: Build Python Executable on PR
+name: PyInstaller Workflow
 
 on:
   pull_request:
-    branches: [ main ]
-    paths:
-      - '**.py'
+    branches:
+      - main # Adjust this to match your target branch
 
 jobs:
-  build-executable:
+  build:
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0 # Ensures history is available for diffs
 
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
-        python-version: '3.10' # Choose the Python version as per your project's need
+        python-version: '3.x'
 
     - name: Install PyInstaller
+      run: pip install pyinstaller
+
+    - name: Identify Changed Python Scripts
+      id: find_scripts
       run: |
-        python -m pip install --upgrade pip
-        pip install pyinstaller
+        echo "CHANGED_FILES<<EOF" >> $GITHUB_ENV
+        git diff --name-only ${{ github.event.before }} ${{ github.event.pull_request.head.sha }} | grep '\.py$'
+        echo "EOF" >> $GITHUB_ENV
 
-    - name: Get list of changed Python files
-      id: files
-      uses: actions/github-script@v3
-      with:
-        script: |
-          const payload = context.payload;
-          const pullRequest = payload.pull_request;
-          const listFilesOptions = github.pulls.listFiles.endpoint.merge({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            pull_number: pullRequest.number
-          });
-          const files = await github.paginate(listFilesOptions, (response) => {
-            return response.data.map(file => file.filename);
-          });
-          const pythonFiles = files.filter(file => file.endsWith('.py'));
-          if (pythonFiles.length > 0) {
-            core.setOutput('files', pythonFiles.join('\n'));
-          } else {
-            core.setFailed('No Python files changed.');
-
-    - name: Build executables with PyInstaller
-      if: steps.files.outputs.files
+    - name: Install Dependencies (Optional)
       run: |
-        IFS=$'\n' read -d '' -r -a files_array <<< "${{ steps.files.outputs.files }}"
-        for file in "${files_array[@]}"
-        do
-          echo "Building executable for $file"
-          pyinstaller --onefile $file
-        done
+        # You can add commands here to install any dependencies your script needs
+        echo "Install any necessary dependencies"
 
-    - name: Upload executables as artifacts
-      uses: actions/upload-artifact@v2
-      with:
-        name: executables
-        path: dist/
+    - name: Run PyInstaller on Changed Python Scripts
+      run: |
+        while IFS= read -r file; do
+          if [[ -f "$file" ]]; then
+            pyinstaller --onefile "$file"
+          fi
+        done <<< "$CHANGED_FILES"
+      env:
+        CHANGED_FILES: ${{ env.CHANGED_FILES }}
