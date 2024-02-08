@@ -1,5 +1,6 @@
 name: PyInstaller Build on PR
 
+# Trigger the workflow on pull requests targeting the 'main' branch
 on:
   pull_request:
     branches:
@@ -7,20 +8,25 @@ on:
 
 jobs:
   build:
+    # Specify the runner to use Windows latest version
     runs-on: windows-latest
 
     steps:
+    # Checkout the repository code at the commit that triggered the workflow
     - name: Checkout code
       uses: actions/checkout@v3
 
+    # Set up a Python environment using the specified version
     - name: Set up Python
       uses: actions/setup-python@v3
       with:
         python-version: '3.x'
 
+    # Install PyInstaller using pip
     - name: Install PyInstaller
       run: pip install pyinstaller
 
+    # Identify Python scripts that have changed in the pull request
     - name: Identify Changed Python Scripts
       run: |
         git fetch --depth=1 origin ${{ github.base_ref }}
@@ -33,21 +39,28 @@ jobs:
           echo "Changed Python files: $fileList"
           echo "changed_files=$fileList" >> $Env:GITHUB_ENV
         }
+      shell: pwsh
 
+    # Optional step to install any dependencies your Python script might need
     - name: Install Dependencies (Optional)
       run: |
-        # Add commands here to install any dependencies your script needs
         echo "Install any necessary dependencies"
 
+    # Compile the changed Python scripts into executables using PyInstaller
     - name: Run PyInstaller on Changed Python Scripts
       if: env.changed_files != ''
       run: |
+        # Create 'dist' and 'specs' directories to store the executables and spec files
         New-Item -ItemType Directory -Force -Path dist, specs
+        # Iterate over each changed Python file
         foreach ($file in $Env:changed_files -split " ") {
           if (Test-Path $file) {
+            # Extract the filename without the extension
             $file_name = [System.IO.Path]::GetFileNameWithoutExtension($file)
             echo "Building executable for $file"
+            # Run PyInstaller to build the executable
             pyinstaller --onefile --name "$file_name" $file
+            # Move the generated .spec file to the 'specs' directory
             Move-Item "$file_name.spec" specs/
           } else {
             echo "$file does not exist."
@@ -57,6 +70,7 @@ jobs:
       env:
         changed_files: ${{ env.changed_files }}
 
+    # Upload the generated executables as artifacts
     - name: Upload Artifacts
       uses: actions/upload-artifact@v3
       with:
