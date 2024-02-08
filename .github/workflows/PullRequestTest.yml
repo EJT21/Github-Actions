@@ -3,20 +3,18 @@ name: PyInstaller Build on PR
 on:
   pull_request:
     branches:
-      - main # Adjust this as necessary
+      - main
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3 # Ensure you're using the latest version
-      with:
-        fetch-depth: 0
+      uses: actions/checkout@v3
 
     - name: Set up Python
-      uses: actions/setup-python@v3 # Assuming v3 for illustrative purposes, ensure you're using the latest version
+      uses: actions/setup-python@v3
       with:
         python-version: '3.x'
 
@@ -26,14 +24,15 @@ jobs:
     - name: Identify Changed Python Scripts
       run: |
         git fetch --depth=1 origin ${{ github.base_ref }}
-        files=$(git diff --name-only origin/${{ github.base_ref }}...${{ github.sha }} | grep '\.py$')
-        if [ -z "$files" ]; then
+        $files = git diff --name-only origin/${{ github.base_ref }}...${{ github.sha }} | Select-String '.py$'
+        if (-not $files) {
           echo "No Python files have changed."
-          echo "changed_files=" >> $GITHUB_ENV
-        else
-          echo "Changed Python files: $files"
-          echo "changed_files=$files" >> $GITHUB_ENV
-        fi
+          echo "changed_files=" >> $Env:GITHUB_ENV
+        } else {
+          $fileList = $files -join " "
+          echo "Changed Python files: $fileList"
+          echo "changed_files=$fileList" >> $Env:GITHUB_ENV
+        }
 
     - name: Install Dependencies (Optional)
       run: |
@@ -43,18 +42,18 @@ jobs:
     - name: Run PyInstaller on Changed Python Scripts
       if: env.changed_files != ''
       run: |
-        mkdir -p dist # Ensure dist directory exists
-        mkdir -p specs # Ensure specs directory exists
-        for file in ${changed_files}; do
-          if [[ -f "$file" ]]; then
-            file_name=$(basename "$file" .py)
+        New-Item -ItemType Directory -Force -Path dist, specs
+        foreach ($file in $Env:changed_files -split " ") {
+          if (Test-Path $file) {
+            $file_name = [System.IO.Path]::GetFileNameWithoutExtension($file)
             echo "Building executable for $file"
-            pyinstaller --onefile --name "${file_name}" "$file"
-            mv "${file_name}.spec" specs/
-          else
+            pyinstaller --onefile --name "$file_name" $file
+            Move-Item "$file_name.spec" specs/
+          } else {
             echo "$file does not exist."
-          fi
-        done
+          }
+        }
+      shell: pwsh
       env:
         changed_files: ${{ env.changed_files }}
 
