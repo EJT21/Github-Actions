@@ -43,6 +43,8 @@ jobs:
     - name: Run PyInstaller on Changed Python Scripts
       if: env.changed_files != ''
       run: |
+        mkdir -p dist # Ensure dist directory exists
+        mkdir -p specs # Ensure specs directory exists
         for file in ${changed_files}; do
           if [[ -f "$file" ]]; then
             file_name=$(basename "$file" .py)
@@ -60,5 +62,4 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: executables
-        path: |
-          dist/*
+        path: dist/*
