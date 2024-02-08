@@ -16,7 +16,7 @@ jobs:
         fetch-depth: 0
 
     - name: Set up Python
-      uses: actions/setup-python@v3 # Ensure you're using the latest version, assuming v3 for illustrative purposes
+      uses: actions/setup-python@v3 # Assuming v3 for illustrative purposes, ensure you're using the latest version
       with:
         python-version: '3.x'
 
@@ -43,13 +43,22 @@ jobs:
     - name: Run PyInstaller on Changed Python Scripts
       if: env.changed_files != ''
       run: |
+        mkdir -p dist
         for file in ${changed_files}; do
           if [[ -f "$file" ]]; then
+            base_name=$(basename "$file" .py)
             echo "Building executable for $file"
-            pyinstaller --onefile "$file"
+            pyinstaller --onefile --distpath dist "$file"
+            echo "$base_name executable built."
           else
             echo "$file does not exist."
           fi
         done
       env:
         changed_files: ${{ env.changed_files }}
+
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: executables
+        path: dist/**
