@@ -1,4 +1,4 @@
-name: PyInstaller Workflow
+name: PyInstaller Build on PR
 
 on:
   pull_request:
@@ -10,7 +10,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - name: Checkout code
+      uses: actions/checkout@v2
       with:
         fetch-depth: 0 # Ensures history is available for diffs
 
@@ -25,9 +26,7 @@ jobs:
     - name: Identify Changed Python Scripts
       id: find_scripts
       run: |
-        echo "CHANGED_FILES<<EOF" >> $GITHUB_ENV
-        git diff --name-only ${{ github.event.before }} ${{ github.event.pull_request.head.sha }} | grep '\.py$'
-        echo "EOF" >> $GITHUB_ENV
+        echo "::set-output name=changed_files::$(git diff --name-only ${{ github.event.before }} ${{ github.event.pull_request.head.sha }} | grep '\.py$')"
 
     - name: Install Dependencies (Optional)
       run: |
@@ -36,10 +35,11 @@ jobs:
 
     - name: Run PyInstaller on Changed Python Scripts
       run: |
-        while IFS= read -r file; do
+        echo "${{ steps.find_scripts.outputs.changed_files }}" | while IFS= read -r file; do
           if [[ -f "$file" ]]; then
+            echo "Building executable for $file"
             pyinstaller --onefile "$file"
+          else
+            echo "No Python files have changed."
           fi
-        done <<< "$CHANGED_FILES"
-      env:
-        CHANGED_FILES: ${{ env.CHANGED_FILES }}
+        done
