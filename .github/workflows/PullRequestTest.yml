@@ -11,12 +11,12 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3 # Updated to the latest version
+      uses: actions/checkout@v3 # Ensure you're using the latest version
       with:
         fetch-depth: 0
 
     - name: Set up Python
-      uses: actions/setup-python@v3 # Updated to the latest version, assuming v3 for illustrative purposes
+      uses: actions/setup-python@v3 # Ensure you're using the latest version, assuming v3 for illustrative purposes
       with:
         python-version: '3.x'
 
@@ -24,16 +24,14 @@ jobs:
       run: pip install pyinstaller
 
     - name: Identify Changed Python Scripts
-      id: find_scripts
       run: |
-        files=$(git diff --name-only ${{ github.event.before }} ${{ github.event.pull_request.head.sha }} | grep '\.py$')
+        git fetch --depth=1 origin ${{ github.base_ref }}
+        files=$(git diff --name-only origin/${{ github.base_ref }}...${{ github.sha }} | grep '\.py$')
         if [ -z "$files" ]; then
           echo "No Python files have changed."
-          # Using Environment Files to set outputs
           echo "changed_files=" >> $GITHUB_ENV
         else
           echo "Changed Python files: $files"
-          # Using Environment Files to set outputs
           echo "changed_files=$files" >> $GITHUB_ENV
         fi
 
@@ -45,7 +43,7 @@ jobs:
     - name: Run PyInstaller on Changed Python Scripts
       if: env.changed_files != ''
       run: |
-        for file in $changed_files; do
+        for file in ${changed_files}; do
           if [[ -f "$file" ]]; then
             echo "Building executable for $file"
             pyinstaller --onefile "$file"
