@@ -1,0 +1,43 @@
+name: Build Executable
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'  # Change to your desired Python version
+
+      - name: Find the latest modified Python script
+        id: find_script
+        run: |
+          SCRIPT_NAME=$(git diff --name-only HEAD^ HEAD | grep '\.py$' | head -n 1)
+          echo "SCRIPT_NAME=$SCRIPT_NAME" >> $GITHUB_ENV
+
+      - name: Install pyinstaller
+        run: |
+          pip install pyinstaller
+
+      - name: Build executable
+        run: |
+          if [ -z "$SCRIPT_NAME" ]; then
+            echo "No Python scripts found to build."
+            exit 0
+          fi
+          pyinstaller --onefile "$SCRIPT_NAME"
+
+      - name: Upload executable
+        uses: actions/upload-artifact@v2
+        with:
+          name: executable
+          path: dist/*
